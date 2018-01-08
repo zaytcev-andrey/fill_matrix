@@ -272,99 +272,7 @@ private:
     }
 };
 
-class leak_free_list
-{
-public:
-	leak_free_list()
-		: head_(nullptr)
-	{
-	}
-
-    leak_free_list( std::initializer_list< int > in_list )
-        : head_( nullptr )
-    {
-        for (const auto& val : in_list)
-        {
-            insert( val );
-        }
-    }
-
-	~leak_free_list()
-	{
-	}
-
-	leak_free_list& insert(int value)
-	{
-		std::unique_ptr< node > value_node = std::make_unique< node >();
-		value_node->value = value;
-
-		std::swap( head_, value_node->next );
-		std::swap( value_node, head_ );
-		
-		return *this;
-	}
-
-	bool empty() const
-	{
-		return head_.get() == nullptr;
-	}
-
-	void print(std::ostream& strm) const
-	{
-		const node* node_ptr = head_.get();
-		while ( node_ptr )
-		{
-			strm << node_ptr->value << " ";
-			node_ptr = node_ptr->next.get();
-		}
-	}
-
-	void reverse()
-	{
-        std::unique_ptr< node > curr_node = std::move( head_ );
-        std::unique_ptr< node > prev_node( nullptr );
-
-		while ( curr_node )
-		{
-            std::unique_ptr< node > next_node_ptr( std::move( curr_node->next ) );
-			curr_node->next = std::move( prev_node );
-
-			if (!next_node_ptr)
-			{
-				head_ = std::move( curr_node );
-			}
-
-			prev_node = std::move( curr_node );
-			curr_node = std::move( next_node_ptr );
-		}
-	}
-
-private:
-	struct node
-	{
-		std::unique_ptr< node > next;
-		int value;
-        
-        ~node()
-        {
-            std::cout << "~node() for " << value << std::endl;
-        }
-
-        node() = default;
-        node( node&& ) = default;
-	};
-
-	std::unique_ptr< node > head_;
-
-};
-
 std::ostream& operator<<( std::ostream& strm, const list& ll )
-{
-    ll.print( strm );
-    return strm;
-}
-
-std::ostream& operator<<( std::ostream& strm, const leak_free_list& ll )
 {
     ll.print( strm );
     return strm;
@@ -968,13 +876,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
     ll.reverse_recursive();
     std::cout << ll << std::endl;
-
-    leak_free_list lf = { 1, 2, 3, 4, 5, 6, 7 };
-
-    std::cout << lf << std::endl;
-
-    lf.reverse();
-    std::cout << lf << std::endl;
 
     const std::string text( "test string for words reveresing" );
     const std::string reverse_text = reverse_words( text );
