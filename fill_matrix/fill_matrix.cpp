@@ -54,103 +54,11 @@ public:
         data_[ row ][ column ] = value;
     }
 
-    class iterator : public std::iterator< 
-        std::random_access_iterator_tag
-        , int 
-        , int
-        , const int*
-        , int& >
-    {
-    public:
-        explicit iterator( matrix& m, size_t idx, size_t row, size_t col ) 
-            : m_( m )
-            , idx_( idx )
-            , row_( row )
-            , col_( col )
-        {
-        }
-
-        iterator& operator++() 
-        {
-            ++idx_;
-            row_ = idx_ / m_.get_column_count();
-            col_ = idx_ % m_.get_column_count();
-            return *this; 
-        }
-        
-        iterator operator++( int ) 
-        { 
-            iterator retval = *this;
-            ++(*this); 
-            return retval; 
-        }
-
-        bool operator<( iterator other ) const 
-        { 
-            return idx_ < other.idx_; 
-        }
-        bool operator==( iterator other ) const 
-        { 
-            return idx_ == other.idx_; 
-        }
-        bool operator!=( iterator other ) const { return !(*this == other); }
-        reference operator*() const { return m_.get_cell( row_, col_ ); }
-
-    private:
-        matrix& m_;
-        size_t idx_;
-        size_t row_;
-        size_t col_;
-    };
-    iterator begin() { return iterator( *this, 0, 0, 0 ); }
-    iterator end() { return iterator( *this, row_count_ * column_count_, row_count_, column_count_ ); }
-
 private:
     typedef std::vector< std::vector< int > > matrix_type;
     size_t row_count_;
     size_t column_count_;
     matrix_type data_;
-};
-
-class helix_iterator : public std::iterator<
-    std::random_access_iterator_tag
-    , int
-    , int
-    , const int*
-    , int& >
-{
-public:
-    explicit helix_iterator( matrix::iterator& iter )
-        : iterator_( iter )
-    {
-    }
-
-    helix_iterator& operator++()
-    {
-        ++iterator_;
-        return *this;
-    }
-
-    helix_iterator operator++( int )
-    {
-        iterator_++;
-        return *this;
-    }
-
-    bool operator<( const helix_iterator& other ) const
-    {
-        return iterator_ < other.iterator_;
-    }
-    bool operator==( const helix_iterator& other ) const
-    {
-        return iterator_ == other.iterator_;
-    }
-
-    bool operator!=( helix_iterator other ) const { return iterator_ != other.iterator_; }
-    reference operator*() const { return *iterator_; }
-
-private:
-    matrix::iterator& iterator_;
 };
 
 std::ostream& operator<<( std::ostream& strm, const matrix& m )
@@ -269,11 +177,6 @@ void fill_matrix_sp( matrix& m, int init_value )
 
         ++step;
     }
-}
-
-void fill_matrix_iter( matrix& m, int value )
-{
-    std::fill( m.begin(), m.end(), value );
 }
 
 class list
@@ -960,21 +863,13 @@ int _tmain(int argc, _TCHAR* argv[])
         fill_matrix_sp( m2, 1 );
 
         std::cout << m2 << std::endl;
+    }    
+
+    { // str compress
+        std::string str_to_compress( "aaabcc" );
+        str_compress( str_to_compress );
+        assert( str_to_compress == "a3bc2" );
     }
-
-    fill_matrix_iter( m, 5 );
-
-    std::cout << m << std::endl;
-
-    helix_iterator it( m.begin() );
-    helix_iterator it_end( m.end() );
-    std::fill( it, it_end, 7 );
-
-    std::cout << m << std::endl;
-
-    std::string str_to_compress( "aaabcc" );
-    str_compress( str_to_compress );
-    assert( str_to_compress == "a3bc2" );
 
     { // merge
         std::vector< int > left = { 1, 3, 5, 7, 9 };
